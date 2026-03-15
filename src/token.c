@@ -87,3 +87,28 @@ const char *token_type_name(TokenType type) {
 
     return "sERRO";
 }
+
+const char *token_display_name(TokenType type) {
+    switch (type) {
+        case sABREPAR:   
+            return "(";
+        case sFECHAPAR:  
+            return ")";
+        case sABRECOL:   
+            return "[";
+        case sFECHACOL:  
+            return "]";
+        case sVIRG:      
+            return ",";
+        case sDPTO:      
+            return ":";
+        case sPVIRG:     
+            return ";";
+        case sDO:        
+            return "do";
+        case sTO:        
+            return "to";
+        default:         
+            return token_type_name(type);
+    }
+}

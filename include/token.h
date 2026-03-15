@@ -80,5 +80,6 @@ typedef struct Token {
 
 Token token_make(TokenType type, const char *lexeme, int line);
 const char *token_type_name(TokenType type);
+const char *token_display_name(TokenType type);
 
 #endif
