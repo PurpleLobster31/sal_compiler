@@ -6,6 +6,9 @@
 static FILE *g_source = NULL;
 static int g_line = 1;
 
+static int g_has_pending_error = 0;
+static char g_pending_error_msg[TOKEN_LEXEME_MAX];
+
 static int lex_getc(void);
 static int lex_peekc(void);
 static void lex_skip_spaces_and_comments(void);
@@ -26,12 +29,16 @@ int lex_init(FILE *source) {
 
     g_source = source;
     g_line = 1;
+    g_has_pending_error = 0;
+    g_pending_error_msg[0] = '\0';
     return 1;
 }
 
 void lex_close(void) {
     g_source = NULL;
     g_line = 1;
+    g_has_pending_error = 0;
+    g_pending_error_msg[0] = '\0';
 }
 
 int lex_line(void) {
@@ -48,6 +55,11 @@ Token lex_next(void) {
     lex_skip_spaces_and_comments();
 
     c = lex_getc();
+
+    if (g_has_pending_error) {
+        g_has_pending_error = 0;
+        return token_make(sERRO, g_pending_error_msg, g_line);
+    }
 
     if (c == EOF) {
         return token_make(sEOF, "", g_line);
@@ -219,10 +231,8 @@ static void lex_skip_spaces_and_comments(void) {
             if (lex_peekc() == '{') {
                 lex_getc();
                 if (!lex_skip_block_comment()) {
-                    /*
-                     * Sem diag ainda: deixamos o EOF ser lido depois.
-                     * O parser/fluxo superior pode acusar sERRO se preferir.
-                     */
+                    g_has_pending_error = 1;
+                    strcpy(g_pending_error_msg, "comentario de bloco nao terminado");
                     return;
                 }
             } else {
