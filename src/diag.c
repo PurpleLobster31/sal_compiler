@@ -87,3 +87,11 @@ void diag_syntax_error_expected(const char *expected_desc, const Token *found) {
 
     exit(EXIT_FAILURE);
 }
+
+void diag_undeclared_error(const char *name, int line) {
+    g_has_error = 1;
+    fprintf(stderr,
+            "Erro semantico na linha %d: identificador '%s' nao foi declarado\n",
+            line, name);
+    exit(EXIT_FAILURE);
+}

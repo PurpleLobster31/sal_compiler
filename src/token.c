@@ -90,25 +90,73 @@ const char *token_type_name(TokenType type) {
 
 const char *token_display_name(TokenType type) {
     switch (type) {
-        case sABREPAR:   
-            return "(";
-        case sFECHAPAR:  
-            return ")";
-        case sABRECOL:   
-            return "[";
-        case sFECHACOL:  
-            return "]";
-        case sVIRG:      
-            return ",";
-        case sDPTO:      
-            return ":";
-        case sPVIRG:     
-            return ";";
-        case sDO:        
-            return "do";
-        case sTO:        
-            return "to";
-        default:         
-            return token_type_name(type);
+        /* Categorias lexicais */
+        case sIDENTIF:      return "identificador";
+        case sCTEINT:       return "constante inteira";
+        case sCTECHAR:      return "constante caractere";
+        case sSTRING:       return "string";
+
+        /* Palavras reservadas */
+        case sMODULE:       return "module";
+        case sGLOBALS:      return "globals";
+        case sLOCALS:       return "locals";
+        case sPROC:         return "proc";
+        case sFN:           return "fn";
+        case sMAIN:         return "main";
+        case sSTART:        return "start";
+        case sEND:          return "end";
+        case sINT:          return "int";
+        case sBOOL:         return "bool";
+        case sCHAR:         return "char";
+        case sIF:           return "if";
+        case sELSE:         return "else";
+        case sMATCH:        return "match";
+        case sWHEN:         return "when";
+        case sOTHERWISE:    return "otherwise";
+        case sFOR:          return "for";
+        case sTO:           return "to";
+        case sSTEP:         return "step";
+        case sDO:           return "do";
+        case sLOOP:         return "loop";
+        case sWHILE:        return "while";
+        case sUNTIL:        return "until";
+        case sPRINT:        return "print";
+        case sSCAN:         return "scan";
+        case sRETURN:       return "ret";
+        case sTRUE:         return "true";
+        case sFALSE:        return "false";
+
+        /* Operadores */
+        case sATRIB:        return ":=";
+        case sSOMA:         return "+";
+        case sSUBRAT:       return "-";
+        case sMULT:         return "*";
+        case sDIV:          return "/";
+        case sIGUAL:        return "=";
+        case sDIFERENTE:    return "<>";
+        case sMAIOR:        return ">";
+        case sMENOR:        return "<";
+        case sMAIORIG:      return ">=";
+        case sMENORIG:      return "<=";
+        case sAND:          return "^";
+        case sOR:           return "v";
+        case sNEG:          return "~";
+        case sIMPLIC:       return "=>";
+        case sPTOPTO:       return "..";
+
+        /* Delimitadores */
+        case sABREPAR:      return "(";
+        case sFECHAPAR:     return ")";
+        case sABRECOL:      return "[";
+        case sFECHACOL:     return "]";
+        case sVIRG:         return ",";
+        case sDPTO:         return ":";
+        case sPVIRG:        return ";";
+
+        /* Meta */
+        case sEOF:          return "fim de arquivo";
+        case sERRO:         return "token invalido";
     }
+
+    return "token invalido";
 }

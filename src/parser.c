@@ -183,13 +183,18 @@ static void parse_ini(void) {
      * Usamos parser_peek() para distinguir "proc main" de "proc outroNome"
      * sem quebrar o estado do lexico.
      */
-    while (g_current.type == sFN ||
-           (g_current.type == sPROC && parser_peek() != sMAIN)) {
-        if (g_current.type == sFN) {
-            parse_func();
-        } else {
-            parse_proc();
+    if (g_current.type == sFN ||
+        (g_current.type == sPROC && parser_peek() != sMAIN)) {
+        diag_info("enter <subs>");
+        while (g_current.type == sFN ||
+               (g_current.type == sPROC && parser_peek() != sMAIN)) {
+            if (g_current.type == sFN) {
+                parse_func();
+            } else {
+                parse_proc();
+            }
         }
+        diag_info("exit <subs>");
     }
 
     parse_princ();
@@ -273,6 +278,7 @@ static void parse_decl_item_names(char names[][256], int extras[], int *count) {
 static DataType parse_tpo(void) {
     DataType type;
 
+    diag_info("enter <tpo>");
     if (g_current.type == sINT) {
         parser_advance();
         type = TYPE_INT;
@@ -287,6 +293,7 @@ static DataType parse_tpo(void) {
         return TYPE_UNDEF;
     }
 
+    diag_info("exit <tpo>");
     return type;
 }
 
@@ -456,6 +463,7 @@ static void parse_bco(int create_scope, int allow_locals) {
 }
 
 static void parse_cmd(void) {
+    diag_info("enter <cmd>");
     switch (g_current.type) {
         case sPRINT:  parse_out(); break;
         case sSCAN:   parse_inp(); break;
@@ -479,11 +487,14 @@ static void parse_cmd(void) {
                 parse_call_after_name(ident.lexeme);
             } else {
                 if (g_current.type == sABRECOL || g_current.type == sATRIB) {
+                    diag_info("enter <atr>");
+                    parser_require_declared_identifier(ident.lexeme);
                     if (g_current.type == sABRECOL) {
                         parse_vec_after_name(ident.lexeme);
                     }
                     parser_expect(sATRIB);
                     parse_elem();
+                    diag_info("exit <atr>");
                 } else {
                     diag_syntax_error_expected("chamada ou atribuicao", &g_current);
                 }
@@ -498,9 +509,11 @@ static void parse_cmd(void) {
             diag_syntax_error_expected("comando", &g_current);
             break;
     }
+    diag_info("exit <cmd>");
 }
 
 static void parse_out(void) {
+    diag_info("enter <out>");
     parser_expect(sPRINT);
     parser_expect(sABREPAR);
     parse_elem();
@@ -508,12 +521,14 @@ static void parse_out(void) {
         parse_elem();
     }
     parser_expect(sFECHAPAR);
+    diag_info("exit <out>");
 }
 
 static void parse_inp(void) {
     char name[256];
     int is_vec = 0;
 
+    diag_info("enter <inp>");
     parser_expect(sSCAN);
     parser_expect(sABREPAR);
     parse_id_or_vec_name(name, 256, &is_vec);
@@ -521,6 +536,7 @@ static void parse_inp(void) {
 
     parser_require_declared_identifier(name);
     (void)is_vec;
+    diag_info("exit <inp>");
 }
 
 static void parse_if(void) {
@@ -548,6 +564,7 @@ static void parse_mat(void) {
 }
 
 static void parse_wlst(void) {
+    diag_info("enter <wlst>");
     if (g_current.type != sWHEN) {
         diag_syntax_error(sWHEN, &g_current);
     }
@@ -559,40 +576,51 @@ static void parse_wlst(void) {
     if (g_current.type == sOTHERWISE) {
         parse_othr();
     }
+    diag_info("exit <wlst>");
 }
 
 static void parse_whn(void) {
+    diag_info("enter <whn>");
     parser_expect(sWHEN);
     parse_wcnd();
     parser_expect(sIMPLIC);
     parse_cmd();
     parser_expect(sPVIRG);
+    diag_info("exit <whn>");
 }
 
 static void parse_othr(void) {
+    diag_info("enter <othr>");
     parser_expect(sOTHERWISE);
     parser_expect(sIMPLIC);
     parse_cmd();
     parser_expect(sPVIRG);
+    diag_info("exit <othr>");
 }
 
 static void parse_wcnd(void) {
+    diag_info("enter <wcnd>");
     parse_witem();
     while (parser_accept(sVIRG)) {
         parse_witem();
     }
+    diag_info("exit <wcnd>");
 }
 
 static void parse_witem(void) {
+    diag_info("enter <witem>");
     parse_wint();
     if (parser_accept(sPTOPTO)) {
         parse_wint();
     }
+    diag_info("exit <witem>");
 }
 
 static void parse_wint(void) {
+    diag_info("enter <wint>");
     parser_accept(sSUBRAT);
     parser_expect(sCTEINT);
+    diag_info("exit <wint>");
 }
 
 static void parse_fr(void) {
@@ -660,66 +688,83 @@ static void parse_atr(void) {
 }
 
 static void parse_ret(void) {
+    diag_info("enter <ret>");
     parser_expect(sRETURN);
     parse_elem();
+    diag_info("exit <ret>");
 }
 
 static void parse_expr(void) {
+    diag_info("enter <expr>");
     parse_exlog();
     while (parser_accept(sOR)) {
         parse_exlog();
     }
+    diag_info("exit <expr>");
 }
 
 static void parse_exlog(void) {
+    diag_info("enter <exlog>");
     parse_exrel();
     while (parser_accept(sAND)) {
         parse_exrel();
     }
+    diag_info("exit <exlog>");
 }
 
 static void parse_exrel(void) {
+    diag_info("enter <exrel>");
     parse_exari();
     while (parser_is_relop(g_current.type)) {
         parser_advance();
         parse_exari();
     }
+    diag_info("exit <exrel>");
 }
 
 static void parse_exari(void) {
+    diag_info("enter <exari>");
     parse_exarp();
     while (g_current.type == sSOMA || g_current.type == sSUBRAT) {
         parser_advance();
         parse_exarp();
     }
+    diag_info("exit <exari>");
 }
 
 static void parse_exarp(void) {
+    diag_info("enter <exarp>");
     parse_fact();
     while (g_current.type == sMULT || g_current.type == sDIV) {
         parser_advance();
         parse_fact();
     }
+    diag_info("exit <exarp>");
 }
 
 static void parse_fact(void) {
+    diag_info("enter <fact>");
     if (parser_accept(sNEG)) {
         parse_fact();
+        diag_info("exit <fact>");
         return;
     }
 
     if (parser_accept(sSUBRAT)) {
         parse_fact();
+        diag_info("exit <fact>");
         return;
     }
 
     if (parser_accept(sABREPAR)) {
         parse_expr();
         parser_expect(sFECHAPAR);
+        diag_info("exit <fact>");
         return;
     }
 
     parse_primary();
+    diag_info("exit <fact>");
 }
 
 static void parse_primary(void) {
@@ -755,7 +800,9 @@ static void parse_primary(void) {
 }
 
 static void parse_elem(void) {
+    diag_info("enter <elem>");
     parse_expr();
+    diag_info("exit <elem>");
 }
 
 static void parse_id_only(char *out_name, int out_size) {
@@ -793,6 +840,7 @@ static void parse_call_after_name(const char *name) {
 }
 
 static void parse_vec_after_name(const char *name) {
+    diag_info("enter <vec>");
     parser_expect(sABRECOL);
     if (g_current.type == sCTEINT) {
         parser_advance();
@@ -803,11 +851,12 @@ static void parse_vec_after_name(const char *name) {
         diag_syntax_error_expected("indice de vetor", &g_current);
     }
     parser_expect(sFECHACOL);
+    diag_info("exit <vec>");
     (void)name;
 }
 
 static void parser_require_declared_identifier(const char *name) {
     if (ts_lookup(name) == NULL) {
-        diag_syntax_error_expected("identificador declarado", &g_current);
+        diag_undeclared_error(name, g_current.line);
     }
 }

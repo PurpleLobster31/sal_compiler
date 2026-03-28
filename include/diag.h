@@ -44,4 +44,11 @@ void diag_syntax_error(TokenType expected, const Token *found);
  */
 void diag_syntax_error_expected(const char *expected_desc, const Token *found);
 
+/*
+ * Erro de identificador nao declarado.
+ * Exibe o nome do identificador e a linha onde foi referenciado.
+ * Interrompe o processo via exit.
+ */
+void diag_undeclared_error(const char *name, int line);
+
 #endif /* DIAG_H */
