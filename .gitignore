@@ -1,56 +1,29 @@
-# Prerequisites
-*.d
+# Binario do compilador
+salc
 
-# Object files
-*.o
-*.ko
-*.obj
-*.elf
+# Objetos de compilacao
+obj/
 
-# Linker output
-*.ilk
-*.map
-*.exp
+# Arquivos de log gerados pelo compilador
+*.tk
+*.ts
+*.trc
 
-# Precompiled Headers
-*.gch
-*.pch
+# Arquivos de teste SAL (opcional: remova se quiser versionar os .sal)
+# *.sal
 
-# Libraries
-*.lib
-*.a
-*.la
-*.lo
-
-# Shared objects (inc. Windows DLLs)
-*.dll
-*.so
-*.so.*
-*.dylib
-
-# Executables
-*.exe
-*.out
-*.app
-*.i*86
-*.x86_64
-*.hex
-
-# Debug files
-*.dSYM/
-*.su
-*.idb
-*.pdb
-
-# Kernel Module Compile Results
-*.mod*
-*.cmd
-.tmp_versions/
-modules.order
-Module.symvers
-Mkfile.old
-dkms.conf
-
-# debug information files
-*.dwo
+# Editores
 .vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Sistema
+.DS_Store
+Thumbs.db
+
+# Arquivos temporarios e de depuracao
+*.out
+core
+vgcore.*
