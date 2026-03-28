@@ -178,6 +178,9 @@ const char *ts_data_type_name(DataType type) {
     return "undef";
 }
 
+/*
+ * Libera recursivamente a memória dos escopos a partir do escopo fornecido.
+ */
 static void ts_free_scopes(Scope *scope) {
     Scope *parent;
 
@@ -188,6 +191,9 @@ static void ts_free_scopes(Scope *scope) {
     }
 }
 
+/*
+ * Libera a memória de todos os símbolos alocados.
+ */
 static void ts_free_symbols(void) {
     Symbol *curr;
     Symbol *next;

@@ -163,6 +163,9 @@ Token lex_next(void) {
     return lex_error_token("caractere invalido");
 }
 
+/*
+ * Lê o próximo caractere do arquivo fonte e incrementa o contador de linha se for '\n'.
+ */
 static int lex_getc(void) {
     int c = fgetc(g_source);
 
@@ -173,6 +176,9 @@ static int lex_getc(void) {
     return c;
 }
 
+/*
+ * Olha o próximo caractere sem consumi-lo (peek).
+ */
 static int lex_peekc(void) {
     int c = lex_getc();
 
@@ -210,6 +216,9 @@ static int lex_skip_block_comment(void) {
     return 0;
 }
 
+/*
+ * Pula espaços em branco e comentários até encontrar um caractere significativo.
+ */
 static void lex_skip_spaces_and_comments(void) {
     int c;
 
@@ -245,6 +254,9 @@ static void lex_skip_spaces_and_comments(void) {
     }
 }
 
+/*
+ * Lê um identificador ou palavra-chave começando com o caractere fornecido.
+ */
 static Token lex_read_identifier_or_keyword(int first_char) {
     char lexeme[TOKEN_LEXEME_MAX];
     size_t len = 0;
@@ -271,6 +283,9 @@ static Token lex_read_identifier_or_keyword(int first_char) {
     return token_make(type, lexeme, g_line);
 }
 
+/*
+ * Lê uma constante inteira começando com o dígito fornecido.
+ */
 static Token lex_read_number(int first_char) {
     char lexeme[TOKEN_LEXEME_MAX];
     size_t len = 0;
@@ -290,6 +305,9 @@ static Token lex_read_number(int first_char) {
     return token_make(sCTEINT, lexeme, g_line);
 }
 
+/*
+ * Lê uma string literal começando com aspas duplas.
+ */
 static Token lex_read_string(void) {
     char lexeme[TOKEN_LEXEME_MAX];
     size_t len = 0;
@@ -316,6 +334,9 @@ static Token lex_read_string(void) {
     return token_make(sERRO, "string nao terminada", start_line);
 }
 
+/*
+ * Lê uma constante de caractere começando com aspas simples.
+ */
 static Token lex_read_char(void) {
     char lexeme[TOKEN_LEXEME_MAX];
     size_t len = 0;
@@ -346,6 +367,10 @@ static Token lex_read_char(void) {
     return token_make(sCTECHAR, lexeme, start_line);
 }
 
+/*
+ * Determina se o lexema é uma palavra-chave reservada e retorna o tipo correspondente.
+ * Caso contrário, retorna sIDENTIF.
+ */
 static TokenType lex_keyword_type(const char *lexeme) {
     if (strcmp(lexeme, "module") == 0)     return sMODULE;
     if (strcmp(lexeme, "globals") == 0)    return sGLOBALS;
@@ -386,6 +411,9 @@ static TokenType lex_keyword_type(const char *lexeme) {
     return sIDENTIF;
 }
 
+/*
+ * Cria um token de erro com a mensagem fornecida.
+ */
 static Token lex_error_token(const char *msg) {
     return token_make(sERRO, msg, g_line);
 }

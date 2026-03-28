@@ -1,3 +1,9 @@
+/*
+ Sal Compiler - Analisador Léxico e Sintático
+ Por: Matheus Mendonça Lopes (10443495)
+ Compiladores - 06N - Professor Leandro - 2026.1
+*/
+
 #include "diag.h"
 #include "lex.h"
 #include "log.h"
