@@ -524,6 +524,7 @@ static void parse_inp(void) {
 }
 
 static void parse_if(void) {
+    diag_info("enter <if>");          
     parser_expect(sIF);
     parser_expect(sABREPAR);
     parse_expr();
@@ -532,15 +533,18 @@ static void parse_if(void) {
     if (parser_accept(sELSE)) {
         parse_cmd();
     }
+    diag_info("exit <if>");           
 }
 
 static void parse_mat(void) {
+    diag_info("enter <match>");       
     parser_expect(sMATCH);
     parser_expect(sABREPAR);
     parse_expr();
     parser_expect(sFECHAPAR);
     parse_wlst();
     parser_expect(sEND);
+    diag_info("exit <match>");        
 }
 
 static void parse_wlst(void) {
@@ -592,18 +596,14 @@ static void parse_wint(void) {
 }
 
 static void parse_fr(void) {
+    diag_info("enter <for>");         
     parser_expect(sFOR);
-
-    /* atr sem ';' */
     parse_atr();
-
     if (g_current.type != sTO) {
         diag_syntax_error_expected("to", &g_current);
     }
     parser_advance();
-
     parse_elem();
-
     if (g_current.type == sSTEP) {
         parser_advance();
         if (g_current.type == sIDENTIF) {
@@ -615,48 +615,48 @@ static void parse_fr(void) {
             diag_syntax_error_expected("identificador ou constante inteira", &g_current);
         }
     }
-
     if (g_current.type != sDO) {
         diag_syntax_error_expected("do", &g_current);
     }
     parser_advance();
-
     parse_cmd();
+    diag_info("exit <for>");          
 }
 
 static void parse_wh_after_loop(void) {
+    diag_info("enter <loop while>");  
     parser_expect(sWHILE);
     parser_expect(sABREPAR);
     parse_expr();
     parser_expect(sFECHAPAR);
     parse_cmd();
+    diag_info("exit <loop while>");   
 }
 
 static void parse_rpt_after_loop(void) {
+    diag_info("enter <loop until>");  
     while (parser_command_starts(g_current.type)) {
         parse_cmd();
         parser_expect(sPVIRG);
     }
-
     parser_expect(sUNTIL);
     parser_expect(sABREPAR);
     parse_expr();
     parser_expect(sFECHAPAR);
+    diag_info("exit <loop until>");   
 }
 
 static void parse_atr(void) {
+    diag_info("enter <atr>");         
     char name[256];
     int is_vec = 0;
 
     parse_id_or_vec_name(name, 256, &is_vec);
-
-    /* Verifica declaracao antes de consumir o ':=' e o elemento */
     parser_require_declared_identifier(name);
-
     parser_expect(sATRIB);
     parse_elem();
-
     (void)is_vec;
+    diag_info("exit <atr>");          
 }
 
 static void parse_ret(void) {
@@ -779,8 +779,8 @@ static void parse_id_or_vec_name(char *out_name, int out_size, int *is_vec_use) 
 }
 
 static void parse_call_after_name(const char *name) {
+    diag_info("enter <call>: %s", name);   
     parser_require_declared_identifier(name);
-
     parser_expect(sABREPAR);
     if (parser_expr_starts(g_current.type)) {
         parse_expr();
@@ -789,6 +789,7 @@ static void parse_call_after_name(const char *name) {
         }
     }
     parser_expect(sFECHAPAR);
+    diag_info("exit <call>: %s", name);    
 }
 
 static void parse_vec_after_name(const char *name) {
