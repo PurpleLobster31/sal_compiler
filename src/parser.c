@@ -9,6 +9,8 @@
 #include <string.h>
 
 static Token g_current;
+static Token g_lookahead;
+static int g_has_lookahead = 0;
 static int g_block_counter = 0;
 
 /* controle basico */
@@ -34,7 +36,7 @@ static void parse_func(void);
 static void parse_proc(void);
 static void parse_princ(void);
 static void parse_param_list(int *param_count);
-static void parse_bco(int create_scope);
+static void parse_bco(int create_scope, int allow_locals);
 static void parse_cmd(void);
 
 /* comandos */
@@ -50,9 +52,7 @@ static void parse_witem(void);
 static void parse_wint(void);
 static void parse_fr(void);
 static void parse_rpt_after_loop(void);
-static void parse_rpt(void);
 static void parse_atr(void);
-static void parse_call_stmt(void);
 static void parse_ret(void);
 
 /* declaracoes / tipos */
@@ -84,6 +84,7 @@ static void parser_insert_decl_group(char names[][256],
                                      int line);
 
 void parse_program(void) {
+    g_has_lookahead = 0;
     parser_advance();
     parse_ini();
 
@@ -93,11 +94,27 @@ void parse_program(void) {
 }
 
 static void parser_advance(void) {
-    g_current = lex_next();
+    if (g_has_lookahead) {
+        g_current = g_lookahead;
+        g_has_lookahead = 0;
+    } else {
+        g_current = lex_next();
+    }
 
     if (g_current.type == sERRO) {
         diag_lex_error(g_current.line, g_current.lexeme);
     }
+}
+
+static TokenType parser_peek(void) {
+    if (!g_has_lookahead) {
+        g_lookahead = lex_next();
+        if (g_lookahead.type == sERRO) {
+            diag_lex_error(g_lookahead.line, g_lookahead.lexeme);
+        }
+        g_has_lookahead = 1;
+    }
+    return g_lookahead.type;
 }
 
 static void parser_expect(TokenType type) {
@@ -161,45 +178,17 @@ static void parse_ini(void) {
         parse_glob();
     }
 
-    if (g_current.type == sFN || g_current.type == sPROC) {
-        /*
-         * As sub-rotinas adicionais aparecem antes do main.
-         * Quando encontrarmos proc main, paramos em princ.
-         */
-        while (g_current.type == sFN ||
-               (g_current.type == sPROC && g_current.type != sEOF)) {
-            if (g_current.type == sPROC) {
-                Token look = g_current;
-                parser_advance();
-                if (g_current.type == sMAIN) {
-                    g_current = look;
-                    break;
-                }
-                g_current = look;
-            }
-            break;
-        }
-
-        while (g_current.type == sFN ||
-               (g_current.type == sPROC && strcmp(g_current.lexeme, "proc") == 0)) {
-            /*
-             * Se for proc main, nao entra aqui.
-             */
-            if (g_current.type == sPROC) {
-                Token saved = g_current;
-                parser_advance();
-                if (g_current.type == sMAIN) {
-                    g_current = saved;
-                    break;
-                }
-                g_current = saved;
-            }
-
-            if (g_current.type == sFN) {
-                parse_func();
-            } else {
-                parse_proc();
-            }
+    /*
+     * Sub-rotinas opcionais: fn's e proc's que nao sejam o main.
+     * Usamos parser_peek() para distinguir "proc main" de "proc outroNome"
+     * sem quebrar o estado do lexico.
+     */
+    while (g_current.type == sFN ||
+           (g_current.type == sPROC && parser_peek() != sMAIN)) {
+        if (g_current.type == sFN) {
+            parse_func();
+        } else {
+            parse_proc();
         }
     }
 
@@ -316,20 +305,6 @@ static void parser_insert_decl_group(char names[][256],
     }
 }
 
-static void parse_subs(void) {
-    while (g_current.type == sFN || g_current.type == sPROC) {
-        if (g_current.type == sFN) {
-            parse_func();
-        } else {
-            break;
-        }
-    }
-
-    while (g_current.type == sPROC) {
-        parse_proc();
-    }
-}
-
 static void parse_func(void) {
     char fn_name[256];
     char scope_name[128];
@@ -357,7 +332,7 @@ static void parse_func(void) {
     parser_expect(sDPTO);
 
     ret_type = parse_tpo();
-    parse_bco(0);
+    parse_bco(0, 1);
 
     ts_leave_scope();
 
@@ -390,7 +365,7 @@ static void parse_proc(void) {
     }
     parser_expect(sFECHAPAR);
 
-    parse_bco(0);
+    parse_bco(0, 1);
 
     ts_leave_scope();
     diag_info("exit <proc>");
@@ -406,7 +381,7 @@ static void parse_princ(void) {
     parser_expect(sFECHAPAR);
 
     ts_enter_scope("proc:main");
-    parse_bco(0);
+    parse_bco(0, 1);
     ts_leave_scope();
 
     diag_info("exit <princ>");
@@ -441,7 +416,7 @@ static void parse_param_list(int *param_count) {
     diag_info("exit <param>");
 }
 
-static void parse_bco(int create_scope) {
+static void parse_bco(int create_scope, int allow_locals) {
     char scope_name[128];
 
     diag_info("enter <bco>");
@@ -451,7 +426,8 @@ static void parse_bco(int create_scope) {
         ts_enter_scope(scope_name);
     }
 
-    if (parser_accept(sLOCALS)) {
+    if (allow_locals && g_current.type == sLOCALS) {
+        parser_advance();   /* consome 'locals' */
         while (g_current.type == sIDENTIF) {
             parse_decls();
         }
@@ -509,21 +485,11 @@ static void parse_cmd(void) {
             break;
         }
         case sRETURN: parse_ret(); break;
-        case sSTART:  parse_bco(1); break;
+        case sSTART:  
+            parse_bco(1, 0);
+            break;
         default:
-            if (g_current.type == sLOOP) {
-                Token save = g_current;
-                parser_advance();
-                if (g_current.type == sWHILE) {
-                    g_current = save;
-                    parse_wh();
-                } else {
-                    g_current = save;
-                    parse_rpt();
-                }
-            } else {
-                diag_syntax_error_expected("comando", &g_current);
-            }
+            diag_syntax_error_expected("comando", &g_current);
             break;
     }
 }
@@ -677,17 +643,14 @@ static void parse_atr(void) {
     int is_vec = 0;
 
     parse_id_or_vec_name(name, 256, &is_vec);
+
+    /* Verifica declaracao antes de consumir o ':=' e o elemento */
+    parser_require_declared_identifier(name);
+
     parser_expect(sATRIB);
     parse_elem();
 
-    parser_require_declared_identifier(name);
     (void)is_vec;
-}
-
-static void parse_call_stmt(void) {
-    char name[256];
-    parse_id_only(name, 256);
-    parse_call_after_name(name);
 }
 
 static void parse_ret(void) {
