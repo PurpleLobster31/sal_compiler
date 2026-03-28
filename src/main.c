@@ -41,14 +41,26 @@ int main(int argc, char **argv) {
         return EXIT_FAILURE;
     }
 
+    /* log_init depois do lex_init, pois deriva o nome do arquivo fonte */
+    if (!log_init(opts->source_path)) {
+        fclose(source);
+        lex_close();
+        ts_close();
+        diag_close();
+        return EXIT_FAILURE;
+    }
+
     /* 4. Executa a analise sintatica (que aciona o lexico e a tabela de simbolos) */
     parse_program();
 
-    /* 5. Gera os logs opcionais (modulo log ainda nao implementado) */
-    /* TODO: if (opts->emit_tokens) log_write_tokens(...); */
-    /* TODO: if (opts->emit_symtab) log_write_symtab(...); */
+    /* 5. Gera os logs opcionais */
+    if (opts->emit_symtab) {
+        log_write_symtab();
+    }
+    /* tokens sao escritos em tempo real por parser_advance — nada a fazer aqui */
 
     /* 6. Encerra os modulos de forma ordenada */
+    log_close();
     lex_close();
     ts_close();
     diag_close();

@@ -4,9 +4,11 @@
 #include "lex.h"
 #include "symtab.h"
 #include "token.h"
+#include "log.h"
 
 #include <stdio.h>
 #include <string.h>
+#include <stdlib.h>
 
 static Token g_current;
 static Token g_lookahead;
@@ -19,7 +21,6 @@ static void parser_expect(TokenType type);
 static int parser_accept(TokenType type);
 
 /* utilidades */
-static int parser_is_type_token(TokenType type);
 static int parser_is_relop(TokenType type);
 static int parser_command_starts(TokenType type);
 static int parser_elem_starts(TokenType type);
@@ -31,7 +32,6 @@ static void parser_make_block_scope_name(char *out, size_t out_size);
 static void parse_ini(void);
 static void parse_glob(void);
 static void parse_decls(void);
-static void parse_subs(void);
 static void parse_func(void);
 static void parse_proc(void);
 static void parse_princ(void);
@@ -54,6 +54,7 @@ static void parse_fr(void);
 static void parse_rpt_after_loop(void);
 static void parse_atr(void);
 static void parse_ret(void);
+static void parse_whn(void);
 
 /* declaracoes / tipos */
 static DataType parse_tpo(void);
@@ -104,6 +105,9 @@ static void parser_advance(void) {
     if (g_current.type == sERRO) {
         diag_lex_error(g_current.line, g_current.lexeme);
     }
+
+    /* Registra o token no log de tokens, se habilitado */
+    log_write_token(&g_current);
 }
 
 static TokenType parser_peek(void) {
@@ -130,10 +134,6 @@ static int parser_accept(TokenType type) {
         return 1;
     }
     return 0;
-}
-
-static int parser_is_type_token(TokenType type) {
-    return type == sINT || type == sBOOL || type == sCHAR;
 }
 
 static int parser_is_relop(TokenType type) {
@@ -307,7 +307,7 @@ static void parser_insert_decl_group(char names[][256],
 
 static void parse_func(void) {
     char fn_name[256];
-    char scope_name[128];
+    char scope_name[264];
     DataType ret_type;
     int param_count = 0;
     int line = g_current.line;
@@ -317,6 +317,7 @@ static void parse_func(void) {
     parser_expect(sFN);
     parse_id_only(fn_name, 256);
 
+    /* Insere provisoriamente com TYPE_UNDEF; sera atualizado apos parsear o tipo */
     if (!ts_insert(fn_name, SYM_FUNC, TYPE_UNDEF, 0, line)) {
         diag_syntax_error_expected("nome de funcao nao duplicado", &g_current);
     }
@@ -332,18 +333,20 @@ static void parse_func(void) {
     parser_expect(sDPTO);
 
     ret_type = parse_tpo();
-    parse_bco(0, 1);
 
+    /* Atualiza o tipo de retorno e a quantidade de parametros na tabela */
+    ts_update_type(fn_name, ret_type);
+    ts_update_extra(fn_name, param_count);
+
+    parse_bco(0, 1);
     ts_leave_scope();
 
     diag_info("exit <func>");
-    (void)ret_type;
-    (void)param_count;
 }
 
 static void parse_proc(void) {
     char proc_name[256];
-    char scope_name[128];
+    char scope_name[264];
     int param_count = 0;
     int line = g_current.line;
 
@@ -379,6 +382,9 @@ static void parse_princ(void) {
     parser_expect(sMAIN);
     parser_expect(sABREPAR);
     parser_expect(sFECHAPAR);
+
+    /* Registra o main na tabela de simbolos como procedimento */
+    ts_insert("main", SYM_PROC, TYPE_VOID, 0, g_current.line);
 
     ts_enter_scope("proc:main");
     parse_bco(0, 1);

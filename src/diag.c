@@ -1,4 +1,5 @@
 #include "diag.h"
+#include "log.h"
 
 #include <stdarg.h>
 #include <stdio.h>
@@ -22,14 +23,24 @@ int diag_has_error(void) {
 
 void diag_info(const char *fmt, ...) {
     va_list args;
+    FILE *dest;
 
     if (!g_trace_enabled) {
         return;
     }
 
+    /*
+     * Se o log de rastreamento estiver aberto, escreve nele.
+     * Caso contrario, escreve em stdout (modo sem arquivo).
+     */
+    dest = log_trace_file();
+    if (dest == NULL) {
+        dest = stdout;
+    }
+
     va_start(args, fmt);
-    vfprintf(stdout, fmt, args);
-    fprintf(stdout, "\n");
+    vfprintf(dest, fmt, args);
+    fprintf(dest, "\n");
     va_end(args);
 }
 

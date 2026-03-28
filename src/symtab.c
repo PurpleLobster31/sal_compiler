@@ -199,3 +199,31 @@ static void ts_free_symbols(void) {
         curr = next;
     }
 }
+
+int ts_update_type(const char *lexeme, DataType type) {
+    Symbol *sym = g_symbols_head;
+
+    while (sym != NULL) {
+        if (strcmp(sym->lexeme, lexeme) == 0) {
+            sym->type = type;
+            return 1;
+        }
+        sym = sym->next;
+    }
+
+    return 0;
+}
+
+int ts_update_extra(const char *lexeme, int extra) {
+    Symbol *sym = g_symbols_head;
+
+    while (sym != NULL) {
+        if (strcmp(sym->lexeme, lexeme) == 0) {
+            sym->extra = extra;
+            return 1;
+        }
+        sym = sym->next;
+    }
+
+    return 0;
+}

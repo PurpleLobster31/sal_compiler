@@ -60,4 +60,7 @@ const Symbol *ts_first_symbol(void);
 const char *ts_symbol_category_name(SymbolCategory category);
 const char *ts_data_type_name(DataType type);
 
+int ts_update_type(const char *lexeme, DataType type);
+int ts_update_extra(const char *lexeme, int extra);
+
 #endif /* SYMTAB_H */
