@@ -123,7 +123,7 @@ const Symbol *ts_lookup(const char *lexeme) {
         Symbol *sym_iter = g_symbols_head;
 
         while (sym_iter != NULL) {
-            if (sym_iter->scope == scope_iter &&
+            if (strcmp(sym_iter->scope_name, scope_iter->name) == 0 &&
                 strcmp(sym_iter->lexeme, lexeme) == 0) {
                 return sym_iter;
             }
@@ -143,7 +143,7 @@ const Symbol *ts_lookup_current_scope(const char *lexeme) {
 
     sym_iter = g_symbols_head;
     while (sym_iter != NULL) {
-        if (sym_iter->scope == g_current_scope &&
+        if (strcmp(sym_iter->scope_name, g_current_scope->name) == 0 &&
             strcmp(sym_iter->lexeme, lexeme) == 0) {
             return sym_iter;
         }
