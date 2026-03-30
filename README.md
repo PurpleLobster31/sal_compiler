@@ -101,3 +101,27 @@ A especificação da linguagem SAL define os delimitadores e símbolos de pontua
 
 Pra esse projeto, optou-se em criar tipos de token explícitos para cada um deles (`sABREPAR`, `sFECHAPAR`, `sABRECOL`, `sFECHACOL`, `sVIRG`, `sDPTO`, `sPVIRG`, `sIMPLIC`, `sPTOPTO`). Isso faz com que o analisador léxico os classifique e os entregue ao parser com um tipo bem definido, tornou a construção mais amigável, e acabou fazendo que as mensagens de erro indiquem qual delimitador estava sendo esperado. Isso fez com que os diagnósticos fossem mais informativos sem alterar a semântica da linguagem.
 
+## Referências
+
+**Especificação da linguagem**
+- FERNANDES, Leandro Carlos. *SAL - Simple Academic Language: Manual da Linguagem*.
+
+**Videoaulas — Construção de Compiladores**
+- [Aula 01: Tópico 01 - Introdução](https://www.youtube.com/watch?v=lJHQhfJwGp0)
+- [Aula 02: Tópico 02 - Análise Léxica — Parte 1](https://www.youtube.com/watch?v=ZdtSFpJameE)
+- [Aula 03: Tópico 02 - Análise Léxica — Parte 2](https://www.youtube.com/watch?v=36MOhcBz7p0)
+- [Aula 03: Tópico 02 - Análise Léxica — Parte 3](https://www.youtube.com/watch?v=LDRA-VOy2Bs)
+
+**Videoaulas — Makefile**
+- [How to Create a Simple Makefile - Introduction to Makefiles](https://www.youtube.com/watch?v=_r7i5X0rXJk) — Paul Programming
+- [Makefiles Make Your Life Easier](https://www.youtube.com/watch?v=yWLkyN_Satk) — NeuralNine
+
+**Materiais de aula**
+- Slides e materiais complementares disponibilizados no Moodle da disciplina.
+
+---
+
+## Uso de Inteligência Artificial
+
+Este projeto contou com auxílio de IA (GitHub Copilot) em duas partes pontuais: para gerar de casos de teste escritos em SAL para validação do compilador, e sugestões de correção na construção do `makefile`.
+
