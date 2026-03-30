@@ -1,8 +1,8 @@
-# SALc — Compilador para a Linguagem SAL
+# SALc - Compilador para a Linguagem SAL
 
-**Autor:** Matheus Mendonça Lopes — RA 10443495  
-**Turma:** 06N — 2026.1  
-**Disciplina:** Compiladores — Prof. Leandro Carlos Fernandes
+**Autor:** Matheus Mendonça Lopes - RA 10443495  
+**Turma:** 06N - 2026.1  
+**Disciplina:** Compiladores - Prof. Leandro Carlos Fernandes
 
 ---
 
@@ -91,7 +91,13 @@ O operador lógico `v` é uma letra isolada, o que poderia causar conflito por f
 
 ### Formato dos arquivos de log
 
-- **`.tk`** — `<linha>  <CATEGORIA>  "<lexema>"`, um token por linha
-- **`.ts`** — `SCOPE=<escopo>  id="<lexema>"  cat=<categoria>  tipo=<tipo>  extra=<valor>`
-- **`.trc`** — `enter <não-terminal>` / `exit <não-terminal>`, refletindo a derivação completa da gramática
+- **`.tk`** - `<linha>  <CATEGORIA>  "<lexema>"`, um token por linha
+- **`.ts`** - `SCOPE=<escopo>  id="<lexema>"  cat=<categoria>  tipo=<tipo>  extra=<valor>`
+- **`.trc`** - `enter <não-terminal>` / `exit <não-terminal>`, refletindo a derivação completa da gramática
+
+### Tokens de delimitadores e pontuação
+
+A especificação da linguagem SAL define os delimitadores e símbolos de pontuação, como `(`, `)`, `[`, `]`, `,`, `:`, `;`, `=>` e `..`, apenas na gramática, e não atribui pra eles categorias léxicas nomeadas (tokens do tipo `sNOME`). Então esses caracteres aparecem na EBNF como literais entre aspas que o parser simplesmente espera encontrar.
+
+Pra esse projeto, optou-se em criar tipos de token explícitos para cada um deles (`sABREPAR`, `sFECHAPAR`, `sABRECOL`, `sFECHACOL`, `sVIRG`, `sDPTO`, `sPVIRG`, `sIMPLIC`, `sPTOPTO`). Isso faz com que o analisador léxico os classifique e os entregue ao parser com um tipo bem definido, tornou a construção mais amigável, e acabou fazendo que as mensagens de erro indiquem qual delimitador estava sendo esperado. Isso fez com que os diagnósticos fossem mais informativos sem alterar a semântica da linguagem.
 

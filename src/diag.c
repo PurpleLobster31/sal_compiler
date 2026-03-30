@@ -29,10 +29,7 @@ void diag_info(const char *fmt, ...) {
         return;
     }
 
-    /*
-     * Se o log de rastreamento estiver aberto, escreve nele.
-     * Caso contrario, escreve em stdout (modo sem arquivo).
-     */
+    /* grava no .trc se estiver aberto. Senão cai no stdout como fallback */
     dest = log_trace_file();
     if (dest == NULL) {
         dest = stdout;

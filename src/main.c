@@ -63,7 +63,7 @@ int main(int argc, char **argv) {
     if (opts->emit_symtab) {
         log_write_symtab();
     }
-    /* tokens sao escritos em tempo real por parser_advance — nada a fazer aqui */
+    /* Os tokens são gravados em tempo real por parser_advance */
 
     /* 6. Encerra os modulos de forma ordenada */
     log_close();

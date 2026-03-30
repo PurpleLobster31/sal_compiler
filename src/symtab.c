@@ -98,6 +98,7 @@ int ts_insert(const char *lexeme,
     strncpy(symbol->scope_name, g_current_scope->name, sizeof(symbol->scope_name) - 1);
     symbol->scope_name[sizeof(symbol->scope_name) - 1] = '\0';
 
+    /* g_symbols_tail evita percorrer a lista inteira a cada inserção */
     if (g_symbols_tail == NULL) {
         g_symbols_head = symbol;
         g_symbols_tail = symbol;
@@ -116,6 +117,8 @@ const Symbol *ts_lookup(const char *lexeme) {
         return NULL;
     }
 
+    /* Busca do escopo mais interno para o mais externo, respeitando a visibilidade da linguagem.
+     * Variáveis locais sobrepõem globais de mesmo nome */
     for (scope_iter = g_current_scope; scope_iter != NULL; scope_iter = scope_iter->parent) {
         Symbol *sym_iter = g_symbols_head;
 
@@ -178,9 +181,6 @@ const char *ts_data_type_name(DataType type) {
     return "undef";
 }
 
-/*
- * Libera recursivamente a memória dos escopos a partir do escopo fornecido.
- */
 static void ts_free_scopes(Scope *scope) {
     Scope *parent;
 
@@ -191,9 +191,6 @@ static void ts_free_scopes(Scope *scope) {
     }
 }
 
-/*
- * Libera a memória de todos os símbolos alocados.
- */
 static void ts_free_symbols(void) {
     Symbol *curr;
     Symbol *next;

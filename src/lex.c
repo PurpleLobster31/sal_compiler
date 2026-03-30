@@ -56,6 +56,8 @@ Token lex_next(void) {
 
     c = lex_getc();
 
+    /* lex_skip_spaces_and_comments pode detectar um erro (ex: bloco não fechado) sem ter um token para devolver na hora.
+     * O erro fica pendente e e emitido no proximo token que o parser tentar consumir. */
     if (g_has_pending_error) {
         g_has_pending_error = 0;
         return token_make(sERRO, g_pending_error_msg, g_line);
@@ -148,12 +150,9 @@ Token lex_next(void) {
             return token_make(sNEG, "~", g_line);
 
         case 'v':
-            /*
-             * Pela especificacao, 'v' e operador logico OR.
-             * Como identificadores podem conter letras, tratamos 'v'
-             * como palavra/identificador quando lida no fluxo normal.
-             * Aqui so cairia se viesse isolado por algum ajuste futuro.
-             */
+            /* 'v' é o operador OR da SAL. Como é uma letra, normalmente seria lido como identificador.
+             * O caso especial em lex_keyword_type trata isso.
+             * Este case só seria atingido se 'v' chegasse aqui sem passar pelo caminho de identificadores. */
             return token_make(sOR, "v", g_line);
 
         default:
@@ -163,9 +162,7 @@ Token lex_next(void) {
     return lex_error_token("caractere invalido");
 }
 
-/*
- * Lê o próximo caractere do arquivo fonte e incrementa o contador de linha se for '\n'.
- */
+// g_line é incrementado aqui para que qualquer erro reportado após lex_getc já reflita a linha correta, mesmo antes de processar o token.
 static int lex_getc(void) {
     int c = fgetc(g_source);
 
@@ -176,9 +173,6 @@ static int lex_getc(void) {
     return c;
 }
 
-/*
- * Olha o próximo caractere sem consumi-lo (peek).
- */
 static int lex_peekc(void) {
     int c = lex_getc();
 
@@ -216,9 +210,6 @@ static int lex_skip_block_comment(void) {
     return 0;
 }
 
-/*
- * Pula espaços em branco e comentários até encontrar um caractere significativo.
- */
 static void lex_skip_spaces_and_comments(void) {
     int c;
 
@@ -254,9 +245,6 @@ static void lex_skip_spaces_and_comments(void) {
     }
 }
 
-/*
- * Lê um identificador ou palavra-chave começando com o caractere fornecido.
- */
 static Token lex_read_identifier_or_keyword(int first_char) {
     char lexeme[TOKEN_LEXEME_MAX];
     size_t len = 0;
@@ -283,9 +271,6 @@ static Token lex_read_identifier_or_keyword(int first_char) {
     return token_make(type, lexeme, g_line);
 }
 
-/*
- * Lê uma constante inteira começando com o dígito fornecido.
- */
 static Token lex_read_number(int first_char) {
     char lexeme[TOKEN_LEXEME_MAX];
     size_t len = 0;
@@ -305,9 +290,6 @@ static Token lex_read_number(int first_char) {
     return token_make(sCTEINT, lexeme, g_line);
 }
 
-/*
- * Lê uma string literal começando com aspas duplas.
- */
 static Token lex_read_string(void) {
     char lexeme[TOKEN_LEXEME_MAX];
     size_t len = 0;
@@ -334,9 +316,8 @@ static Token lex_read_string(void) {
     return token_make(sERRO, "string nao terminada", start_line);
 }
 
-/*
- * Lê uma constante de caractere começando com aspas simples.
- */
+/* A linguagem só aceita exatamente um caractere entre aspas simples.
+ * Qualquer coisa além disso (múltiplos chars ou fechamento ausente) é erro. */
 static Token lex_read_char(void) {
     char lexeme[TOKEN_LEXEME_MAX];
     size_t len = 0;
@@ -367,10 +348,6 @@ static Token lex_read_char(void) {
     return token_make(sCTECHAR, lexeme, start_line);
 }
 
-/*
- * Determina se o lexema é uma palavra-chave reservada e retorna o tipo correspondente.
- * Caso contrário, retorna sIDENTIF.
- */
 static TokenType lex_keyword_type(const char *lexeme) {
     if (strcmp(lexeme, "module") == 0)     return sMODULE;
     if (strcmp(lexeme, "globals") == 0)    return sGLOBALS;
@@ -401,19 +378,13 @@ static TokenType lex_keyword_type(const char *lexeme) {
     if (strcmp(lexeme, "true") == 0)       return sTRUE;
     if (strcmp(lexeme, "false") == 0)      return sFALSE;
 
-    /*
-     * 'v' aparece na especificacao como operador OR.
-     * Como nao pode virar identificador reservado de 1 letra sem decisao
-     * consciente, tratamos aqui explicitamente.
-     */
+    /* Novamente, 'v' é o operador OR da SAL. Por ser uma letra minúscula isolada, élido como sequência alfanumérica normal e chega aqui para classificação.
+     * Sem este caso, seria classificado como identificador. */
     if (strcmp(lexeme, "v") == 0)          return sOR;
 
     return sIDENTIF;
 }
 
-/*
- * Cria um token de erro com a mensagem fornecida.
- */
 static Token lex_error_token(const char *msg) {
     return token_make(sERRO, msg, g_line);
 }

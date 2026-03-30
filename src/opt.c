@@ -5,9 +5,6 @@
 
 static Options g_opts;
 
-/*
- * Reseta as opções para valores padrão.
- */
 static void opts_reset(void) {
     g_opts.source_path = NULL;
     g_opts.emit_tokens = 0;

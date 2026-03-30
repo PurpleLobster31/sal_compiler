@@ -118,13 +118,7 @@ void log_write_symtab(void) {
         return;
     }
 
-    /*
-     * Percorre a lista de simbolos na ordem de insercao.
-     * A symtab ja garante a ordem: global primeiro, depois
-     * cada sub-rotina na ordem em que foram declaradas.
-     * Formato:
-     * SCOPE=<descr>  id="<lexema>"  cat=<categ>  tipo=<tipo>  extra=<atrib>
-     */
+    /* formato da impressão: SCOPE=<descr>  id="<lex>"  cat=<cat>  tipo=<tipo>  extra=<val> */
     sym = ts_first_symbol();
     while (sym != NULL) {
         fprintf(g_symtab_file,
